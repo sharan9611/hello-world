@@ -1,0 +1,27 @@
+# =============================================================================
+# Example Terraform Variables File
+# Copy this file to terraform.tfvars and update with your values
+# =============================================================================
+
+# Required: Your GCP Project ID
+project_id = "your-gcp-project-id"
+
+# Optional: GCP region and BigQuery location
+region   = "us-central1"
+location = "US"
+
+# Optional: Environment name
+environment = "dev"
+
+# Required: Email addresses for IAM access
+data_analyst_email     = "data-analyst@your-company.com"
+data_team_group_email  = "data-team@your-company.com"
+readonly_group_email   = "readonly-users@your-company.com"
+conditional_user_email = "conditional-user@your-company.com"
+
+# Required: Service account for BigQuery access
+service_account_email = "bigquery-sa@your-gcp-project-id.iam.gserviceaccount.com"
+
+# Required: Cloud Storage buckets for external tables
+data_bucket = "your-data-bucket"
+logs_bucket = "your-logs-bucket"

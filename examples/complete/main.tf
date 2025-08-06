@@ -160,7 +160,7 @@ module "bigquery_complete" {
   }
 
   # Dataset access control
-  access = [
+  access = concat([
     {
       role          = "roles/bigquery.dataOwner"
       special_group = "projectOwners"
@@ -168,16 +168,14 @@ module "bigquery_complete" {
     {
       role          = "roles/bigquery.dataEditor"
       special_group = "projectEditors"
-    },
-    {
-      role         = "roles/bigquery.dataViewer"
-      user_by_email = var.data_analyst_email
-    },
-    {
-      role           = "roles/bigquery.dataViewer"
-      group_by_email = var.data_team_group_email
     }
-  ]
+  ], var.data_analyst_email != null ? [{
+    role         = "roles/bigquery.dataViewer"
+    user_by_email = var.data_analyst_email
+  }] : [], var.data_team_group_email != null ? [{
+    role           = "roles/bigquery.dataViewer"
+    group_by_email = var.data_team_group_email
+  }] : [])
 
   # Regular tables
   tables = [
@@ -312,9 +310,9 @@ module "bigquery_complete" {
     }
   ]
 
-  # External tables
-  external_tables = [
-    {
+  # External tables (only if buckets are specified)
+  external_tables = concat(
+    var.data_bucket != null ? [{
       table_id      = "external_products_csv"
       table_name    = "External Products CSV"
       description   = "External table reading from CSV files in Cloud Storage"
@@ -334,8 +332,8 @@ module "bigquery_complete" {
         table_type = "external"
         source     = "csv"
       })
-    },
-    {
+    }] : [],
+    var.logs_bucket != null ? [{
       table_id      = "external_logs_json"
       table_name    = "External Logs JSON"
       description   = "External table reading from JSON log files"
@@ -349,8 +347,8 @@ module "bigquery_complete" {
         table_type = "external"
         source     = "json"
       })
-    }
-  ]
+    }] : []
+  )
 
   # Routines (Functions and Procedures)
   routines = [
@@ -412,19 +410,23 @@ module "bigquery_complete" {
     }
   ]
 
-  # IAM bindings
-  dataset_iam_bindings = {
-    "roles/bigquery.dataViewer" = [
-      "group:${var.readonly_group_email}",
-      "serviceAccount:${var.service_account_email}"
-    ]
-    "roles/bigquery.jobUser" = [
-      "group:${var.data_team_group_email}"
-    ]
-  }
+  # IAM bindings (only if emails are specified)
+  dataset_iam_bindings = merge(
+    var.readonly_group_email != null && var.service_account_email != null ? {
+      "roles/bigquery.dataViewer" = compact([
+        var.readonly_group_email != null ? "group:${var.readonly_group_email}" : null,
+        var.service_account_email != null ? "serviceAccount:${var.service_account_email}" : null
+      ])
+    } : {},
+    var.data_team_group_email != null ? {
+      "roles/bigquery.jobUser" = [
+        "group:${var.data_team_group_email}"
+      ]
+    } : {}
+  )
 
-  # IAM members with conditions
-  dataset_iam_members = {
+  # IAM members with conditions (only if user email is specified)
+  dataset_iam_members = var.conditional_user_email != null ? {
     "conditional_viewer" = {
       role   = "roles/bigquery.dataViewer"
       member = "user:${var.conditional_user_email}"
@@ -434,7 +436,7 @@ module "bigquery_complete" {
         expression = "request.time.getHours() >= 9 && request.time.getHours() < 17"
       }
     }
-  }
+  } : {}
 
   # Authorized views from other datasets
   authorized_views = [

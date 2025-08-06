@@ -28,34 +28,41 @@ variable "environment" {
 variable "data_analyst_email" {
   description = "Email of the data analyst who needs access to the dataset"
   type        = string
+  default     = null
 }
 
 variable "data_team_group_email" {
   description = "Email of the data team Google group"
   type        = string
+  default     = null
 }
 
 variable "readonly_group_email" {
   description = "Email of the readonly access Google group"
   type        = string
+  default     = null
 }
 
 variable "service_account_email" {
   description = "Email of the service account that needs access"
   type        = string
+  default     = null
 }
 
 variable "conditional_user_email" {
   description = "Email of the user with conditional access"
   type        = string
+  default     = null
 }
 
 variable "data_bucket" {
   description = "Cloud Storage bucket containing data files"
   type        = string
+  default     = null
 }
 
 variable "logs_bucket" {
   description = "Cloud Storage bucket containing log files"
   type        = string
+  default     = null
 }
